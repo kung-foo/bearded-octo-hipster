@@ -12,7 +12,6 @@ from collections import OrderedDict
 
 tornado.options.enable_pretty_logging()
 
-
 web_sockets = []
 process_map = {}
 
@@ -70,7 +69,6 @@ application = tornado.web.Application([
 
 def update_processes():
     if web_sockets:
-        #start = datetime.utcnow()
         new_process_map = get_process_map()
         added = set(new_process_map.keys()) - set(process_map.keys())
         removed = set(process_map.keys()) - set(new_process_map.keys())
@@ -92,21 +90,21 @@ def update_processes():
                 process_map[k] = new_process_map[k]
                 results['records'][k] = new_process_map[k]
 
-        print len(added), len(removed), len(updated)
+        print 'added:', len(added), 'removed:', len(removed), 'updated:', len(updated)
 
         results['updated'] = list(updated)
         results['added'] = list(added)
         results['removed'] = list(removed)
 
         d = json.dumps(results)
+        print 'sending %d bytes' % len(d)
         for socket in web_sockets:
             socket.write_message(d)
-        #print (datetime.utcnow() - start).total_seconds()
 
 if __name__ == '__main__':
     application.listen(8888)
 
-    sched = tornado.ioloop.PeriodicCallback(update_processes, 1000)
+    sched = tornado.ioloop.PeriodicCallback(update_processes, 500)
     sched.start()
 
     tornado.ioloop.IOLoop.instance().start()
