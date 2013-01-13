@@ -7,34 +7,46 @@ import tornado.web
 import tornado.options
 from tornado import websocket
 import psutil
+import hashlib
+from collections import OrderedDict
 
 tornado.options.enable_pretty_logging()
 
 
 web_sockets = []
+process_map = {}
 
 
-def get_process_dict():
-    results = []
+def get_process_map():
+    results = {}
     me = os.getuid()
     for p in psutil.process_iter():
         if me == p.uids.real:
-            cpu_time = p.get_cpu_times()
-            results.append({
-                'pid':              p.pid,
-                'create_time':      datetime.fromtimestamp(p.create_time).strftime('%Y-%m-%d %H:%M'),
-                'username':         p.username,
-                'thread_count':     p.get_num_threads(),
-                'rss':              p.get_memory_info().rss,
-                'cpu':              time.strftime('%H:%M:%S', time.gmtime(cpu_time[0] + cpu_time[1])),
-                'cmdline':          ' '.join(p.cmdline)
-            })
+            proc_hash = '%d:%d' % (p.pid, p.create_time)
+            proc_hash = hashlib.md5(proc_hash).hexdigest()
+            cpu_time = time.gmtime(reduce(lambda x, y: x + y, p.get_cpu_times()))
+            row = OrderedDict()
+            row['pid'] = p.pid
+            row['create_time'] = datetime.fromtimestamp(p.create_time).strftime('%Y-%m-%d %H:%M')
+            row['username'] = p.username
+            row['thread_count'] = p.get_num_threads()
+            row['rss'] = p.get_memory_info().rss
+            row['cpu'] = time.strftime('%H:%M:%S', cpu_time)
+            row['cmdline'] = ' '.join(p.cmdline)
+            row['proc_hash'] = proc_hash
+            results[proc_hash] = row
     return results
+
+
+def hash_row(row):
+    m = hashlib.md5()
+    [m.update(str(f)) for f in row.values()]
+    return m.hexdigest()
 
 
 class API_ProcessList(tornado.web.RequestHandler):
     def get(self):
-        self.write({'results': get_process_dict()})
+        self.write({'records': get_process_map().values()})
 
 
 class WSAPI_ProcessList(websocket.WebSocketHandler):
@@ -58,16 +70,43 @@ application = tornado.web.Application([
 
 def update_processes():
     if web_sockets:
-        start = datetime.utcnow()
-        d = json.dumps({'results': get_process_dict()})
+        #start = datetime.utcnow()
+        new_process_map = get_process_map()
+        added = set(new_process_map.keys()) - set(process_map.keys())
+        removed = set(process_map.keys()) - set(new_process_map.keys())
+        updated = set()
+
+        results = {}
+        results['records'] = {}
+
+        for k in added:
+            process_map[k] = new_process_map[k]
+            results['records'][k] = new_process_map[k]
+
+        for k in removed:
+            del process_map[k]
+
+        for k in process_map:
+            if hash_row(process_map[k]) != hash_row(new_process_map[k]):
+                updated.add(k)
+                process_map[k] = new_process_map[k]
+                results['records'][k] = new_process_map[k]
+
+        print len(added), len(removed), len(updated)
+
+        results['updated'] = list(updated)
+        results['added'] = list(added)
+        results['removed'] = list(removed)
+
+        d = json.dumps(results)
         for socket in web_sockets:
             socket.write_message(d)
-        print (datetime.utcnow() - start).total_seconds()
+        #print (datetime.utcnow() - start).total_seconds()
 
 if __name__ == '__main__':
     application.listen(8888)
 
-    sched = tornado.ioloop.PeriodicCallback(update_processes, 2000)
+    sched = tornado.ioloop.PeriodicCallback(update_processes, 1000)
     sched.start()
 
     tornado.ioloop.IOLoop.instance().start()

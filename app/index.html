@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="/static/css/app.css">
     <link rel="stylesheet" href="/static/css/bootstrap.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script src="/static/js/angular.min.js"></script>
-    <script src="/static/js/angular-sanitize.min.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/angular.js"></script>
+    <script src="/static/js/angular-sanitize.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
     <script src="/static/js/app.js"></script>
     <script src="/static/js/controllers.js"></script>
     <script src="/static/js/filters.js"></script>
@@ -22,10 +22,24 @@
                 <form>
                     <fieldset>
                         <legend>Controls</legend>
+                        
                         <label>Filter</label>
                         <input type="text" placeholder="Type something…" ng-model="query">
-                        <span class="help-block">Example block-level help text here.</span>
-                    </fieldset>
+
+                        <label>Sort By</label>
+                        <select ng-model="orderProp">
+                            <option value="pid">PID</option>
+                            <option value="create_time">Create Time</option>
+                            <option value="thread_count">Thread Count</option>
+                            <option value="cpu">CPU Time</option>
+                            <option value="rss">Memory</option>
+                            <option value="cmdline">Command Line</option>
+                        </select>
+
+                       <label class="checkbox">
+                            <input type="checkbox" ng-model="reverse">Reverse
+                        </label>
+                    </fieldset> 
                 </form>
             </div>
             <div class="span10">
@@ -42,12 +56,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="process in processes | filter:query">
+                        <tr ng-repeat="process in processes | filter:query | orderBy:orderProp:reverse">
                             <td><span class="mono">{{process.pid}}</span></td>
                             <td>{{process.create_time}}</td>
                             <td>{{process.username}}</td>
                             <td><span class="mono">{{process.thread_count}}</span></td>
-                            <td><span class="mono">{{process.rss}}</span></td>
+                            <td><span class="mono">{{process.rss | formatSize}}</span></td>
                             <td><span class="mono">{{process.cpu}}</span></td>
                             <td><span class="mono" ng-bind-html="process.cmdline | boldFirst"></span></td>
                         </tr>
