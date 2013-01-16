@@ -34,7 +34,8 @@
                                 <option value="pid">PID</option>
                                 <option value="create_time">Create Time</option>
                                 <option value="thread_count">Thread Count</option>
-                                <option value="cpu">CPU Time</option>
+                                <option value="cpu_time">CPU Time</option>
+                                <option value="cpu_pct">CPU Percent</option>
                                 <option value="rss">Memory</option>
                                 <option value="cmdline">Command Line</option>
                             </select>
@@ -62,6 +63,7 @@
                                 <th>Threads</th>
                                 <th>RSS</th>
                                 <th>CPU Time</th>
+                                <th>CPU Pct.</th>
                                 <th>Command Line</th>
                             </tr>
                         </thead>
@@ -72,7 +74,8 @@
                                 <td>{{process.username}}</td>
                                 <td><span class="mono">{{process.thread_count}}</span></td>
                                 <td><span class="mono">{{process.rss | formatSize}}</span></td>
-                                <td><span class="mono">{{process.cpu}}</span></td>
+                                <td><span class="mono">{{process.cpu_time}}</span></td>
+                                <td><span class="mono">{{process.cpu_pct}}</span></td>
                                 <td><span class="mono" ng-bind-html="process.cmdline | boldFirst"></span></td>
                             </tr>
                         </tbody>

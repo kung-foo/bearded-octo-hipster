@@ -8,10 +8,12 @@ function ProcessListCtrl($scope, $http, socket) {
         socket.onmessage = function(event) {
             $scope.debug_bytes += event.data.length;
 
-            data = JSON.parse(event.data);
+            var data = JSON.parse(event.data);
+
             if (data['updated'].length > 0 || data['removed'].length > 0 || data['added'].length > 0) {
                 $scope.$apply(function() {
                     var clone = angular.copy($scope.processes);
+                    $scope.processes = Array();
 
                     for (var i in clone) {
                         proc_hash = clone[i]['proc_hash'];
@@ -28,8 +30,6 @@ function ProcessListCtrl($scope, $http, socket) {
                             } 
                         }
                     }
-
-                    $scope.processes = Array();
 
                     for (var i in data['added']) {
                         k = data['added'][i];
