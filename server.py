@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import time
 from datetime import datetime
@@ -34,6 +35,7 @@ def get_process_map():
             #row['cpu_pct'] = p.get_cpu_percent(interval=0.01)
             row['cmdline'] = ' '.join(p.cmdline)
             row['proc_hash'] = proc_hash
+            row['sep'] = os.path.sep
             results[proc_hash] = row
     return results
 
@@ -105,7 +107,7 @@ def update_processes():
 if __name__ == '__main__':
     application.listen(8888)
 
-    sched = tornado.ioloop.PeriodicCallback(update_processes, 500)
+    sched = tornado.ioloop.PeriodicCallback(update_processes, 1000)
     sched.start()
 
     tornado.ioloop.IOLoop.instance().start()

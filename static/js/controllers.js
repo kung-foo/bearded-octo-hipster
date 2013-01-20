@@ -4,7 +4,7 @@ function ProcessListCtrl($scope, $http, socket) {
 
     $http.get('/api/process_list').success(function(data) {
         $scope.processes = data['records'];
-
+        
         socket.onmessage = function(event) {
             $scope.debug_bytes += event.data.length;
 

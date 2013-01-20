@@ -76,7 +76,7 @@
                                 <td><span class="mono">{{process.rss | formatSize}}</span></td>
                                 <td><span class="mono">{{process.cpu_time}}</span></td>
                                 <!--<td><span class="mono">{{process.cpu_pct}}</span></td>-->
-                                <td><span class="mono" ng-bind-html="process.cmdline | boldFirst"></span></td>
+                                <td><span class="mono" ng-bind-html="process.cmdline | boldFirst:process.sep"></span></td>
                             </tr>
                         </tbody>
                     </table>

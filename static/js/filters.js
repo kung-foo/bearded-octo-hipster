@@ -1,17 +1,17 @@
 angular.module('processListFilters', []).filter('boldFirst', function($sanitize) {
-    return function(input) {
+    return function(input, sep) {
         // use $sanitize here because we are _disabling_ the normal sanitizing in the view
         //input = $sanitize(input);
 
         t = input.split(" ", 2);
-        p = t[0].split("/");
+        p = t[0].split(sep);
 
         bin = p[p.length - 1];
 
         h = '<span class="bold">' + bin + '</span>';
 
         if (p.length > 1) {
-            h = p.slice(0, p.length - 1).join('/') + '/' + h;
+            h = p.slice(0, p.length - 1).join(sep) + sep + h;
         }
 
         if (t.length == 2) {
