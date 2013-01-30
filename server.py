@@ -19,10 +19,11 @@ process_map = {}
 
 def get_process_map():
     results = {}
-    me = os.getenv('USERNAME')
+    me = os.getenv('USERNAME') or os.getenv('USER')
 
     for p in psutil.process_iter():
         try:
+            # windows includes the domain\host in p.username
             if p.username.split('\\')[-1] == me:
                 proc_hash = '%d:%d' % (p.pid, p.create_time)
                 proc_hash = hashlib.md5(proc_hash).hexdigest()
@@ -34,7 +35,6 @@ def get_process_map():
                 row['thread_count'] = p.get_num_threads()
                 row['rss'] = p.get_memory_info().rss
                 row['cpu_time'] = time.strftime('%H:%M:%S', cpu_time)
-                #row['cpu_pct'] = p.get_cpu_percent(interval=0.01)
                 if p.cmdline:
                     row['cmdline'] = p.cmdline
                 else:
