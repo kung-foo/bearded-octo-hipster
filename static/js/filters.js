@@ -3,8 +3,8 @@ angular.module('processListFilters', []).filter('boldFirst', function($sanitize)
         // use $sanitize here because we are _disabling_ the normal sanitizing in the view
         //input = $sanitize(input);
 
-        t = input.split(" ", 2);
-        p = t[0].split(sep);
+        //t = input.split(" ", 2);
+        p = input[0].split(sep);
 
         bin = p[p.length - 1];
 
@@ -14,9 +14,10 @@ angular.module('processListFilters', []).filter('boldFirst', function($sanitize)
             h = p.slice(0, p.length - 1).join(sep) + sep + h;
         }
 
-        if (t.length == 2) {
-            h += ' ' + t[1];
+        if (input.length > 1) {
+            h += ' ' + input.slice(1, input.length).join(' ');
         }
+
         return h;
     };
 }).filter('formatSize', function() {

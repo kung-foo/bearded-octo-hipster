@@ -19,24 +19,32 @@ process_map = {}
 
 def get_process_map():
     results = {}
-    me = os.getuid()
+    me = os.getenv('USERNAME')
+
     for p in psutil.process_iter():
-        if me == p.uids.real:
-            proc_hash = '%d:%d' % (p.pid, p.create_time)
-            proc_hash = hashlib.md5(proc_hash).hexdigest()
-            cpu_time = time.gmtime(reduce(lambda x, y: x + y, p.get_cpu_times()))
-            row = OrderedDict()
-            row['pid'] = p.pid
-            row['create_time'] = datetime.fromtimestamp(p.create_time).strftime('%Y-%m-%d %H:%M')
-            row['username'] = p.username
-            row['thread_count'] = p.get_num_threads()
-            row['rss'] = p.get_memory_info().rss
-            row['cpu_time'] = time.strftime('%H:%M:%S', cpu_time)
-            #row['cpu_pct'] = p.get_cpu_percent(interval=0.01)
-            row['cmdline'] = ' '.join(p.cmdline)
-            row['proc_hash'] = proc_hash
-            row['sep'] = os.path.sep
-            results[proc_hash] = row
+        try:
+            if p.username.split('\\')[-1] == me:
+                proc_hash = '%d:%d' % (p.pid, p.create_time)
+                proc_hash = hashlib.md5(proc_hash).hexdigest()
+                cpu_time = time.gmtime(reduce(lambda x, y: x + y, p.get_cpu_times()))
+                row = OrderedDict()
+                row['pid'] = p.pid
+                row['create_time'] = datetime.fromtimestamp(p.create_time).strftime('%Y-%m-%d %H:%M')
+                row['username'] = p.username
+                row['thread_count'] = p.get_num_threads()
+                row['rss'] = p.get_memory_info().rss
+                row['cpu_time'] = time.strftime('%H:%M:%S', cpu_time)
+                #row['cpu_pct'] = p.get_cpu_percent(interval=0.01)
+                if p.cmdline:
+                    row['cmdline'] = p.cmdline
+                else:
+                    row['cmdline'] = [p.name]
+                row['proc_hash'] = proc_hash
+                row['sep'] = os.path.sep
+                results[proc_hash] = row
+
+        except psutil.error.AccessDenied as e:
+            pass
     return results
 
 
