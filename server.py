@@ -11,7 +11,7 @@ import psutil
 import hashlib
 from collections import OrderedDict
 
-tornado.options.enable_pretty_logging()
+tornado.log.enable_pretty_logging()
 
 web_sockets = []
 process_map = {}
